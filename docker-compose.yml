@@ -8,7 +8,8 @@ services:
       - mongo
     volumes:
       - .:/usr/src/app
-  command: npm run start:dev
+    command: >
+      sh -c "npm run start:dev"
   mongo:
     image: mongo
     ports:
