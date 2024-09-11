@@ -39,14 +39,16 @@ export class ItemsService {
       throw new Error('priceMin cannot be greater than priceMax');
     }
 
-    if (priceMin || priceMax) {
+    const min = priceMin ? Number(priceMin) : undefined;
+    const max = priceMax ? Number(priceMax) : undefined;
+
+    if (min || max) {
       where.price = {
-        gte: priceMin || undefined,
-        lte: priceMax || undefined,
+        gte: min || undefined,
+        lte: max || undefined,
       };
     }
   }
-
   private applyCategoryFilter(where: any, category?: string) {
     if (category) where.category = category;
   }
