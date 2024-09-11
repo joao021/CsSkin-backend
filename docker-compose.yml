@@ -1,21 +1,27 @@
 version: '3.8'
+
 services:
+  mongo:
+    image: mongo
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: skinsdb
+    volumes:
+      - mongo-data:/data/db
+
   app:
     build: .
     ports:
       - "3000:3000"
     depends_on:
       - mongo
+    environment:
+      - DATABASE_URL=mongodb://mongo:27017/skinsdb
     volumes:
       - .:/usr/src/app
     command: >
-      sh -c "npm run start:dev"
-  mongo:
-    image: mongo
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo-data:/data/db
+      sh -c "node scripts/mongo-seed.js && npm run start:dev"
 
 volumes:
   mongo-data:
