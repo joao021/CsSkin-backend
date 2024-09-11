@@ -18,7 +18,13 @@ export class ItemsService {
   }
 
   private applyNameFilter(where: any, name?: string) {
-    if (name) where.name = { contains: name };
+    if (name) {
+      const sanitizedName = name.replace(/[^a-zA-Z0-9]/g, '');
+      where.name = {
+        contains: sanitizedName,
+        mode: 'insensitive',
+      };
+    }
   }
 
   private applyFloatFilter(where: any, floatMin?: number, floatMax?: number) {
@@ -49,6 +55,7 @@ export class ItemsService {
       };
     }
   }
+
   private applyCategoryFilter(where: any, category?: string) {
     if (category) where.category = category;
   }
