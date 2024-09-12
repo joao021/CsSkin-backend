@@ -46,7 +46,7 @@ describe('ItemsService', () => {
 
     expect(findManySpy).toHaveBeenCalledWith({
       where: {
-        name: { contains: 'AK' },
+        name: { contains: 'AK', mode: 'insensitive' },
         float: { gte: 0.1, lte: 0.3 },
         price: { gte: 50, lte: 150 },
         category: 'rifle',
@@ -74,7 +74,9 @@ describe('ItemsService', () => {
       floatMax: 0.2,
     };
 
-    await expect(service.getItems(filters)).rejects.toThrow('floatMin cannot be greater than floatMax');
+    await expect(service.getItems(filters)).rejects.toThrow(
+      'floatMin cannot be greater than floatMax',
+    );
   });
 
   it('should throw error if priceMin is greater than priceMax', async () => {
@@ -83,6 +85,8 @@ describe('ItemsService', () => {
       priceMax: 100,
     };
 
-    await expect(service.getItems(filters)).rejects.toThrow('priceMin cannot be greater than priceMax');
+    await expect(service.getItems(filters)).rejects.toThrow(
+      'priceMin cannot be greater than priceMax',
+    );
   });
 });
