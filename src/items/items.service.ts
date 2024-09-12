@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { GetItemsFilterDto } from './dto/get-item.dto';
+const Fuse = require('fuse.js');
 
 @Injectable()
 export class ItemsService {
@@ -9,22 +10,23 @@ export class ItemsService {
   async getItems(filterDto: GetItemsFilterDto) {
     const where: any = {};
 
-    this.applyNameFilter(where, filterDto.name);
     this.applyFloatFilter(where, filterDto.floatMin, filterDto.floatMax);
     this.applyPriceFilter(where, filterDto.priceMin, filterDto.priceMax);
     this.applyCategoryFilter(where, filterDto.category);
 
-    return this.prisma.item.findMany({ where });
-  }
+    const items = await this.prisma.item.findMany({ where });
 
-  private applyNameFilter(where: any, name?: string) {
-    if (name) {
-      const sanitizedName = name.replace(/[^a-zA-Z0-9]/g, '');
-      where.name = {
-        contains: sanitizedName,
-        mode: 'insensitive',
-      };
+    if (filterDto.name) {
+      const fuse = new Fuse(items, {
+        keys: ['name'],
+        threshold: 0.3,
+      });
+
+      const result = fuse.search(filterDto.name);
+      return result.map(res => res.item);
     }
+
+    return items;
   }
 
   private applyFloatFilter(where: any, floatMin?: number, floatMax?: number) {

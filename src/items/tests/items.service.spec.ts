@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ItemsService } from '../items.service';
 import { PrismaService } from '../../prisma.service';
-
+const Fuse = require('fuse.js');
 describe('ItemsService', () => {
   let service: ItemsService;
   let prisma: PrismaService;
@@ -46,7 +46,6 @@ describe('ItemsService', () => {
 
     expect(findManySpy).toHaveBeenCalledWith({
       where: {
-        name: { contains: 'AK', mode: 'insensitive' },
         float: { gte: 0.1, lte: 0.3 },
         price: { gte: 50, lte: 150 },
         category: 'rifle',
@@ -54,7 +53,17 @@ describe('ItemsService', () => {
       orderBy: undefined,
     });
 
-    expect(result).toEqual([
+    const fuse = new Fuse(result, {
+      keys: ['name'],
+      threshold: 0.3,
+    });
+
+    const fuzzyResult = fuse.search(filters.name).map(res => res.item);
+    expect(fuzzyResult).toEqual([result[0]]);
+  });
+
+  it('should correctly handle variations in name format using Fuse.js', async () => {
+    const findManySpy = jest.spyOn(prisma.item, 'findMany').mockResolvedValue([
       {
         id: '1',
         name: 'AK-47',
@@ -62,10 +71,31 @@ describe('ItemsService', () => {
         price: 100,
         category: 'rifle',
         image: 'some-image-url',
-        createdAt: expect.any(Date),
-        updatedAt: expect.any(Date),
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
     ]);
+
+    const filtersWithVariations = [
+      { name: 'ak47' },
+      { name: 'AK 47' },
+      { name: 'AK-47' },
+      { name: 'A K 47' },
+    ];
+
+    for (const filters of filtersWithVariations) {
+      const result = await service.getItems(filters);
+
+      expect(findManySpy).toHaveBeenCalled();
+
+      const fuse = new Fuse(result, {
+        keys: ['name'],
+        threshold: 0.3,
+      });
+
+      const fuzzyResult = fuse.search(filters.name).map(res => res.item);
+      expect(fuzzyResult).toEqual([result[0]]);
+    }
   });
 
   it('should throw error if floatMin is greater than floatMax', async () => {
