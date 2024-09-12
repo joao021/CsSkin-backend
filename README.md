@@ -94,6 +94,16 @@ Se preferir rodar sem Docker, siga os passos:
 
 3. A API estará acessível em \`http://localhost:3000\`.
 
+### Abastecendo o banco
+
+Foi criado o arquivo mongo-seed.js, caso rode o projeto pelo docker, ele será executado automaticamente, caso queira rodar manualmente, execute o comando:
+
+    \`\`\`bash
+    docker-compose exec app node scripts/mongo-seed.js
+    \`\`\`
+
+O Comando será bem sucedido caso o seu mongoDB esteja rodando através do docker.
+
 ## Documentação da API
 
 A documentação Swagger é gerada automaticamente e pode ser acessada em:
